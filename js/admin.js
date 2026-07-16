@@ -113,4 +113,40 @@ async function saveSalesFromModal(event){
 }
 
 async function editChannel(id){const old=A.channels.find(x=>x.channel_id===id)||{channel_id:'CH'+Date.now(),is_active:true};const item={...old,display_name:input('ชื่อช่องทาง',old.display_name||'')};if(item.display_name===null)return;item.utm_source=input('utm_source',old.utm_source||'');item.utm_medium=input('utm_medium',old.utm_medium||'sales');item.is_active=confirm('เปิดใช้งานช่องทางนี้หรือไม่?');await PTCADApi.request('saveChannel',{item});load()}function exportCSV(){const rows=[['Timestamp','Campaign','Salesperson','Channel','URL'],...A.history.map(x=>[x.timestamp,x.campaign_name,x.salesperson,x.channel,x.generated_url])];const csv=rows.map(r=>r.map(v=>'"'+String(v||'').replaceAll('"','""')+'"').join(',')).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv'}));a.download='ptcad-link-history.csv';a.click()}
-document.addEventListener('DOMContentLoaded',()=>{$$('.menu button').forEach(b=>b.onclick=()=>{$$('.menu button').forEach(x=>x.classList.remove('active'));b.classList.add('active');$$('.admin-view').forEach(v=>v.classList.remove('active'));$('#'+b.dataset.view).classList.add('active')});$('#addCampaign').onclick=()=>editCampaign('new');$('#addSales').onclick=()=>openSalesModal('new');$('#addChannel').onclick=()=>editChannel('new');$('#exportCSV').onclick=exportCSV;$('#logout').onclick=()=>{sessionStorage.clear();location.href='login.html'};load()});
+document.addEventListener('DOMContentLoaded',()=>{
+  $$('.menu button').forEach(b=>b.onclick=()=>{
+    $$('.menu button').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    $$('.admin-view').forEach(v=>v.classList.remove('active'));
+    $('#'+b.dataset.view).classList.add('active');
+  });
+
+  $('#addCampaign').onclick=()=>editCampaign('new');
+  $('#addSales').onclick=()=>openSalesModal('');
+  $('#addChannel').onclick=()=>editChannel('new');
+  $('#exportCSV').onclick=exportCSV;
+  $('#logout').onclick=()=>{
+    sessionStorage.clear();
+    location.href='login.html';
+  };
+
+  const salesForm=$('#salesForm');
+  if(salesForm){
+    salesForm.addEventListener('submit',saveSalesFromModal);
+  }
+
+  $$('[data-close-sales-modal]').forEach(element=>{
+    element.addEventListener('click',closeSalesModal);
+  });
+
+  document.addEventListener('keydown',event=>{
+    if(
+      event.key==='Escape' &&
+      $('#salesModal')?.classList.contains('show')
+    ){
+      closeSalesModal();
+    }
+  });
+
+  load();
+});

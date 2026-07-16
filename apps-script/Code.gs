@@ -168,14 +168,8 @@ function removeTinyUrlApiToken() {
 function shortenWithTinyUrl_(longUrl) {
   if (!longUrl) throw new Error('ไม่พบ URL ที่ต้องการย่อ');
 
-  let parsed;
-  try {
-    parsed = new URL(longUrl);
-  } catch (error) {
-    throw new Error('URL ไม่ถูกต้อง');
-  }
-
-  if (!['http:', 'https:'].includes(parsed.protocol)) {
+  const normalizedUrl = String(longUrl).trim();
+  if (!/^https?:\/\/[^\s]+$/i.test(normalizedUrl)) {
     throw new Error('รองรับเฉพาะ URL ที่ขึ้นต้นด้วย http หรือ https');
   }
 
@@ -195,7 +189,7 @@ function shortenWithTinyUrl_(longUrl) {
       Accept: 'application/json'
     },
     payload: JSON.stringify({
-      url: longUrl,
+      url: normalizedUrl,
       domain: 'tinyurl.com'
     }),
     muteHttpExceptions: true
@@ -222,7 +216,7 @@ function shortenWithTinyUrl_(longUrl) {
   return {
     success: true,
     short_url: result.data.tiny_url,
-    long_url: longUrl
+    long_url: normalizedUrl
   };
 }
 
